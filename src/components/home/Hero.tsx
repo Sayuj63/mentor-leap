@@ -195,7 +195,7 @@ export default function Hero() {
             <motion.div
               initial={{ opacity: 0, scale: 0.95, x: 20 }}
               animate={{ opacity: 1, scale: 1, x: 0 }}
-              transition={{ duration: 1.2, ease: "power4.out", delay: 0.6 }}
+              transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1], delay: 0.6 }}
               className="relative aspect-[4/5] rounded-[2rem] overflow-hidden border border-gold/20 shadow-2xl"
             >
               <img
