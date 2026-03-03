@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import { motion } from "framer-motion";
 import { gsap } from "gsap";
 import { ArrowRight, ChevronDown } from "lucide-react";
@@ -9,11 +9,17 @@ const words = ["Job-Ready.", "Leadership-Ready.", "Future-Ready."];
 
 export default function Hero() {
   const containerRef = useRef<HTMLDivElement>(null);
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const [exiting, setExiting] = useState(false);
+  const wordRefs = useRef<HTMLSpanElement[]>([]);
+  const currentWord = useRef(0);
 
-  // Entrance animations
   useEffect(() => {
+    // Set initial state — only first word visible
+    wordRefs.current.forEach((el, i) => {
+      if (!el) return;
+      gsap.set(el, { opacity: i === 0 ? 1 : 0, y: i === 0 ? 0 : 30 });
+    });
+
+    // Staggered entrance
     const ctx = gsap.context(() => {
       gsap.from(".hero-line", {
         y: 80,
@@ -47,431 +53,175 @@ export default function Hero() {
         ease: "power3.out",
       });
     }, containerRef);
-    return () => ctx.revert();
-  }, []);
 
-  // Word cycling — pure React + CSS animations, no GSAP refs
-  useEffect(() => {
+    // Word cycle
     const interval = setInterval(() => {
-      // Step 1: trigger exit animation
-      setExiting(true);
-      // Step 2: after exit, swap word and enter
-      setTimeout(() => {
-        setCurrentIndex((i) => (i + 1) % words.length);
-        setExiting(false);
-      }, 450);
-    }, 2800);
-    return () => clearInterval(interval);
+      const prev = wordRefs.current[currentWord.current];
+      if (!prev) return;
+      currentWord.current = (currentWord.current + 1) % words.length;
+      const next = wordRefs.current[currentWord.current];
+      if (!next) return;
+
+      gsap.to(prev, { y: -40, opacity: 0, duration: 0.5, ease: "power2.in" });
+      gsap.fromTo(
+        next,
+        { y: 40, opacity: 0 },
+        { y: 0, opacity: 1, duration: 0.6, ease: "power2.out", delay: 0.35 }
+      );
+    }, 2500);
+
+    return () => {
+      ctx.revert();
+      clearInterval(interval);
+    };
   }, []);
 
   return (
     <section
       ref={containerRef}
-      className="relative min-h-screen flex flex-col justify-center overflow-hidden"
-      style={{ backgroundColor: "var(--color-cream)" }}
+      className="relative min-h-screen flex flex-col justify-center items-start overflow-hidden bg-cream"
     >
-      {/* Background blobs */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div
-          className="absolute rounded-full blur-3xl"
-          style={{ top: "15%", left: "35%", width: 500, height: 500, background: "rgba(29,79,216,0.04)" }}
-        />
-        <div
-          className="absolute rounded-full blur-3xl"
-          style={{ bottom: "15%", right: "15%", width: 380, height: 380, background: "rgba(201,168,76,0.07)" }}
-        />
+      {/* Background elements */}
+      <div className="absolute inset-0 overflow-hidden">
+        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-blue/5 rounded-full blur-3xl" />
+        <div className="absolute bottom-1/4 right-1/4 w-80 h-80 bg-gold/8 rounded-full blur-3xl" />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-navy/3 rounded-full blur-3xl" />
       </div>
 
-      {/* Grid */}
+      {/* Grid lines */}
       <div
-        className="absolute inset-0 pointer-events-none"
+        className="absolute inset-0 opacity-[0.03]"
         style={{
-          opacity: 0.025,
           backgroundImage:
             "linear-gradient(#0D1B3E 1px, transparent 1px), linear-gradient(90deg, #0D1B3E 1px, transparent 1px)",
           backgroundSize: "80px 80px",
         }}
       />
 
-      {/* Two-column layout */}
-      <div className="relative z-10 w-full hero-container" style={{ maxWidth: 1280, margin: "0 auto" }}>
+      <div className="relative z-10 max-w-7xl mx-auto px-6 w-full text-left py-20">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
-
-          {/* ── LEFT: Content ── */}
-          <div className="flex flex-col">
-
+          {/* CONTENT COLUMN */}
+          <div>
             {/* Badge */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.1 }}
-              style={{
-                display: "inline-flex",
-                alignItems: "center",
-                gap: 8,
-                padding: "8px 20px",
-                borderRadius: 999,
-                border: "1px solid rgba(201,168,76,0.35)",
-                background: "rgba(201,168,76,0.06)",
-                marginBottom: 40,
-                alignSelf: "flex-start",
-              }}
+              className="inline-flex items-center gap-2 px-6 py-2.5 rounded-full border border-gold/30 bg-gold/5 mb-10"
             >
-              <span
-                style={{
-                  width: 6, height: 6, borderRadius: "50%",
-                  background: "var(--color-gold)",
-                  display: "inline-block",
-                  animation: "pulse 2s infinite",
-                }}
-              />
-              <span style={{
-                fontFamily: "var(--font-dm)",
-                fontSize: "0.7rem",
-                letterSpacing: "0.12em",
-                textTransform: "uppercase",
-                color: "var(--color-gold)",
-              }}>
+              <span className="w-1.5 h-1.5 rounded-full bg-gold animate-pulse" />
+              <span className="font-dm text-xs text-gold tracking-widest uppercase">
                 AI-Powered Professional Growth
               </span>
             </motion.div>
 
-            {/* Headline group */}
-            <div style={{ marginBottom: 8 }}>
-              <div className="overflow-hidden">
-                <h1
-                  className="hero-line"
-                  style={{
-                    fontFamily: "var(--font-cormorant)",
-                    fontWeight: 300,
-                    fontSize: "clamp(2.8rem, 4.5vw, 5rem)",
-                    lineHeight: 1.0,
-                    letterSpacing: "-0.02em",
-                    color: "var(--color-navy)",
-                    margin: 0,
-                  }}
-                >
-                  Become
-                </h1>
-              </div>
+            {/* Headline block */}
+            <div className="overflow-hidden mb-2">
+              <h1 className="hero-line font-cormorant font-300 text-6xl md:text-8xl text-navy leading-[0.95] tracking-tight">
+                Become
+              </h1>
+            </div>
 
-              {/* Cycling word wrapper */}
-              <div
-                style={{
-                  position: "relative",
-                  overflow: "hidden",
-                  height: "clamp(2.8rem, 4.5vw, 5rem)",
-                  marginTop: 4,
-                  marginBottom: 4,
-                }}
-              >
+            {/* Cycling word */}
+            <div
+              className="relative overflow-hidden mb-2"
+              style={{ height: "1.05em", lineHeight: "1.05" }}
+            >
+              {words.map((word, i) => (
                 <span
-                  key={currentIndex}
+                  key={word}
+                  ref={(el) => {
+                    if (el) wordRefs.current[i] = el;
+                  }}
+                  className="absolute left-0 font-cormorant font-600 text-6xl md:text-8xl text-gold tracking-tight"
                   style={{
-                    position: "absolute",
-                    top: 0,
-                    left: 0,
-                    fontFamily: "var(--font-cormorant)",
-                    fontWeight: 600,
-                    fontSize: "clamp(2.8rem, 4.5vw, 5rem)",
-                    lineHeight: 1.0,
-                    letterSpacing: "-0.02em",
-                    color: "var(--color-gold)",
-                    whiteSpace: "nowrap",
-                    animation: exiting
-                      ? "wordExit 0.4s ease-in forwards"
-                      : "wordEnter 0.5s ease-out forwards",
+                    opacity: i === 0 ? 1 : 0,
+                    transform: i === 0 ? "translateY(0)" : "translateY(30px)",
+                    lineHeight: "1.05",
+                    willChange: "transform, opacity",
                   }}
                 >
-                  {words[currentIndex]}
+                  {word}
                 </span>
-              </div>
+              ))}
+            </div>
 
-              <div className="overflow-hidden">
-                <p
-                  className="hero-line"
-                  style={{
-                    fontFamily: "var(--font-cormorant)",
-                    fontWeight: 300,
-                    fontSize: "clamp(2.8rem, 4.5vw, 5rem)",
-                    lineHeight: 1.0,
-                    letterSpacing: "-0.02em",
-                    color: "var(--color-navy)",
-                    margin: 0,
-                  }}
-                >
-                  Powered by AI.
-                </p>
-              </div>
+            <div className="overflow-hidden mb-8">
+              <p className="hero-line font-cormorant font-300 text-6xl md:text-8xl text-navy leading-[0.95] tracking-tight">
+                Powered by AI.
+              </p>
             </div>
 
             {/* Subheading */}
-            <p
-              className="hero-sub"
-              style={{
-                fontFamily: "var(--font-dm)",
-                fontWeight: 300,
-                fontSize: "0.95rem",
-                lineHeight: 1.7,
-                color: "var(--color-text-muted)",
-                maxWidth: 420,
-                marginTop: 24,
-                marginBottom: 36,
-              }}
-            >
+            <p className="hero-sub font-dm font-300 text-lg text-text-muted max-w-xl mb-12 leading-relaxed">
               MentorLeap is an AI-powered skill acceleration ecosystem combining
               real-world mentorship, executive coaching, and 24×7 AI learning support.
             </p>
 
             {/* CTAs */}
-            <div
-              className="hero-cta"
-              style={{ display: "flex", flexWrap: "wrap", gap: 12, marginBottom: 48 }}
-            >
+            <div className="flex flex-col sm:flex-row items-start justify-start gap-4 mb-20">
               <Link
                 href="/executive-coaching"
-                className="group"
-                style={{
-                  display: "inline-flex",
-                  alignItems: "center",
-                  gap: 8,
-                  padding: "14px 28px",
-                  borderRadius: 999,
-                  background: "var(--color-navy)",
-                  color: "var(--color-cream)",
-                  fontFamily: "var(--font-dm)",
-                  fontSize: "0.875rem",
-                  fontWeight: 400,
-                  textDecoration: "none",
-                  transition: "background 0.3s",
-                  whiteSpace: "nowrap",
-                }}
-                onMouseEnter={(e) => {
-                  (e.currentTarget as HTMLElement).style.background = "var(--color-navy-light)";
-                }}
-                onMouseLeave={(e) => {
-                  (e.currentTarget as HTMLElement).style.background = "var(--color-navy)";
-                }}
+                className="hero-cta group flex items-center justify-center gap-2 px-8 py-4 bg-navy text-cream font-dm text-sm rounded-full hover:bg-navy-light transition-all duration-300 hover:gap-3 w-full sm:w-auto"
               >
                 Start Your Growth Journey
-                <ArrowRight size={16} />
+                <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform duration-300" />
               </Link>
-
               <Link
                 href="/executive-coaching"
-                style={{
-                  display: "inline-flex",
-                  alignItems: "center",
-                  gap: 8,
-                  padding: "14px 28px",
-                  borderRadius: 999,
-                  border: "1px solid rgba(13,27,62,0.2)",
-                  color: "var(--color-navy)",
-                  fontFamily: "var(--font-dm)",
-                  fontSize: "0.875rem",
-                  fontWeight: 400,
-                  textDecoration: "none",
-                  transition: "border-color 0.3s, color 0.3s",
-                  whiteSpace: "nowrap",
-                }}
-                onMouseEnter={(e) => {
-                  (e.currentTarget as HTMLElement).style.borderColor = "var(--color-gold)";
-                  (e.currentTarget as HTMLElement).style.color = "var(--color-gold)";
-                }}
-                onMouseLeave={(e) => {
-                  (e.currentTarget as HTMLElement).style.borderColor = "rgba(13,27,62,0.2)";
-                  (e.currentTarget as HTMLElement).style.color = "var(--color-navy)";
-                }}
+                className="hero-cta flex items-center justify-center gap-2 px-8 py-4 border border-navy/20 text-navy font-dm text-sm rounded-full hover:border-gold hover:text-gold transition-all duration-300 w-full sm:w-auto"
               >
                 Explore Executive Coaching
               </Link>
             </div>
 
             {/* Stats */}
-            <div style={{ display: "flex", flexWrap: "wrap", gap: 40 }}>
-              {([
-                { value: "500+", label: "Professionals Coached", star: false },
-                { value: "20+", label: "Years Experience", star: false },
-                { value: "4.9", label: "Average Rating", star: true },
-              ] as { value: string; label: string; star: boolean }[]).map((stat) => (
-                <div key={stat.label} className="hero-stats">
-                  <div style={{
-                    fontFamily: "var(--font-cormorant)",
-                    fontWeight: 500,
-                    fontSize: "2.5rem",
-                    color: "var(--color-navy)",
-                    lineHeight: 1,
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 5,
-                  }}>
-                    {stat.value}
-                    {stat.star && (
-                      <svg width="18" height="18" viewBox="0 0 24 24" fill="var(--color-navy)" style={{ flexShrink: 0, marginBottom: 2 }}>
-                        <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
-                      </svg>
-                    )}
-                  </div>
-                  <div style={{
-                    fontFamily: "var(--font-dm)",
-                    fontSize: "0.62rem",
-                    letterSpacing: "0.1em",
-                    textTransform: "uppercase",
-                    color: "var(--color-text-muted)",
-                    marginTop: 5,
-                  }}>
-                    {stat.label}
-                  </div>
+            <div className="flex flex-wrap items-center justify-start gap-12">
+              {[
+                { value: "500+", label: "Professionals Coached" },
+                { value: "20+", label: "Years Experience" },
+                { value: "4.9★", label: "Average Rating" },
+              ].map((stat) => (
+                <div key={stat.label} className="hero-stats text-left">
+                  <div className="font-cormorant font-500 text-4xl text-navy">{stat.value}</div>
+                  <div className="font-dm text-xs text-text-muted tracking-wider uppercase mt-1">{stat.label}</div>
                 </div>
               ))}
             </div>
           </div>
 
-          {/* ── RIGHT: Placeholder image ── */}
-          <div
-            className="hidden lg:flex items-center justify-center"
-            style={{ height: "100%" }}
-          >
-            <div
-              style={{
-                position: "relative",
-                width: "100%",
-                maxWidth: 520,
-                aspectRatio: "4 / 5",
-                borderRadius: 20,
-                overflow: "hidden",
-                background:
-                  "linear-gradient(145deg, rgba(13,27,62,0.05) 0%, rgba(201,168,76,0.09) 100%)",
-                border: "1px solid rgba(201,168,76,0.18)",
-              }}
+          {/* IMAGE COLUMN */}
+          <div className="relative hidden lg:block">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, x: 20 }}
+              animate={{ opacity: 1, scale: 1, x: 0 }}
+              transition={{ duration: 1.2, ease: "power4.out", delay: 0.6 }}
+              className="relative aspect-[4/5] rounded-[2rem] overflow-hidden border border-gold/20 shadow-2xl"
             >
-              {/* Dashed inner frame */}
-              <div
-                style={{
-                  position: "absolute",
-                  inset: 16,
-                  borderRadius: 12,
-                  border: "1px dashed rgba(201,168,76,0.28)",
-                  pointerEvents: "none",
-                }}
+              <img
+                src="/hero-profile.jpg"
+                alt="Mridu Bhandari"
+                className="w-full h-full object-cover"
               />
+              <div className="absolute inset-0 bg-gradient-to-t from-navy/20 to-transparent" />
+            </motion.div>
 
-              {/* Placeholder icon + label */}
-              <div
-                style={{
-                  position: "absolute",
-                  inset: 0,
-                  display: "flex",
-                  flexDirection: "column",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  gap: 12,
-                }}
-              >
-                <div
-                  style={{
-                    width: 64,
-                    height: 64,
-                    borderRadius: "50%",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    background: "rgba(201,168,76,0.1)",
-                    border: "1px solid rgba(201,168,76,0.3)",
-                  }}
-                >
-                  <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
-                    <rect x="3" y="3" width="18" height="18" rx="2"
-                      stroke="var(--color-gold)" strokeWidth="1.5" />
-                    <circle cx="8.5" cy="8.5" r="1.5"
-                      stroke="var(--color-gold)" strokeWidth="1.5" />
-                    <path d="M21 15L16 10L5 21"
-                      stroke="var(--color-gold)" strokeWidth="1.5"
-                      strokeLinecap="round" strokeLinejoin="round" />
-                  </svg>
-                </div>
-                <p
-                  style={{
-                    fontFamily: "var(--font-dm)",
-                    fontSize: "0.72rem",
-                    letterSpacing: "0.09em",
-                    textTransform: "uppercase",
-                    color: "var(--color-text-muted)",
-                  }}
-                >
-                  Replace with your image
-                </p>
-              </div>
-
-              {/* Decorative dots */}
-              <div style={{
-                position: "absolute", top: 24, right: 24,
-                width: 32, height: 32, borderRadius: "50%",
-                background: "rgba(201,168,76,0.18)",
-              }} />
-              <div style={{
-                position: "absolute", bottom: 28, left: 28,
-                width: 16, height: 16, borderRadius: "50%",
-                background: "rgba(13,27,62,0.1)",
-              }} />
-              <div style={{
-                position: "absolute", top: "40%", left: 20,
-                width: 8, height: 8, borderRadius: "50%",
-                background: "rgba(201,168,76,0.3)",
-              }} />
-            </div>
+            {/* Decorative elements around image */}
+            <div className="absolute -top-6 -right-6 w-32 h-32 border-2 border-gold/10 rounded-full" />
+            <div className="absolute -bottom-10 -left-10 w-48 h-48 bg-gold/5 rounded-full blur-2xl" />
           </div>
-
         </div>
       </div>
 
       {/* Scroll cue */}
       <motion.div
-        style={{
-          position: "absolute",
-          bottom: 32,
-          left: "50%",
-          transform: "translateX(-50%)",
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-          gap: 6,
-        }}
+        className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2"
         animate={{ y: [0, 8, 0] }}
         transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
       >
-        <span style={{
-          fontFamily: "var(--font-dm)",
-          fontSize: "0.62rem",
-          letterSpacing: "0.14em",
-          textTransform: "uppercase",
-          color: "var(--color-text-muted)",
-        }}>
-          Scroll
-        </span>
-        <ChevronDown size={14} style={{ color: "var(--color-text-muted)" }} />
+        <span className="font-dm text-xs text-text-muted tracking-widest uppercase">Scroll</span>
+        <ChevronDown className="w-4 h-4 text-text-muted" />
       </motion.div>
-
-      {/* Keyframes for cycling word + responsive padding */}
-      <style>{`
-        @keyframes wordEnter {
-          0%   { transform: translateY(44px); opacity: 0; }
-          100% { transform: translateY(0);    opacity: 1; }
-        }
-        @keyframes wordExit {
-          0%   { transform: translateY(0);     opacity: 1; }
-          100% { transform: translateY(-44px); opacity: 0; }
-        }
-        .hero-container {
-          padding: 128px 80px 80px;
-        }
-        @media (max-width: 1024px) {
-          .hero-container { padding: 120px 48px 64px; }
-        }
-        @media (max-width: 640px) {
-          .hero-container { padding: 100px 24px 60px; }
-        }
-      `}</style>
     </section>
   );
 }
