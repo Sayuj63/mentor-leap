@@ -4,12 +4,15 @@ import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { MessageSquare, X, Send, Sparkles } from "lucide-react";
 
+type Message = { role: "user" | "assistant"; content: string };
+
 export function ChatBot() {
     const [isOpen, setIsOpen] = useState(false);
-    const [messages, setMessages] = useState([
-        { role: "assistant", content: "Hi, I am Mree - Ai. How can I help you?" },
+    const [messages, setMessages] = useState<Message[]>([
+        { role: "assistant", content: "Hi, I am Mree · AI. How can I help you today?" },
     ]);
     const [input, setInput] = useState("");
+    const [typing, setTyping] = useState(false);
     const scrollRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
@@ -20,94 +23,201 @@ export function ChatBot() {
 
     const handleSend = () => {
         if (!input.trim()) return;
-
-        const userMessage = { role: "user", content: input };
-        setMessages((prev) => [...prev, userMessage]);
+        setMessages((p) => [...p, { role: "user", content: input }]);
         setInput("");
-
-        // Dummy reply
+        setTyping(true);
         setTimeout(() => {
-            setMessages((prev) => [
-                ...prev,
+            setTyping(false);
+            setMessages((p) => [
+                ...p,
                 {
                     role: "assistant",
-                    content: "Thank you for reaching out! I'm currently in training, but I'll be fully ready to assist you soon. How else can I help you with MentorLeap?",
+                    content:
+                        "Thank you for reaching out! I'm currently in training, but I'll be fully ready to assist you soon. How else can I help you with MentorLeap?",
                 },
             ]);
-        }, 1000);
+        }, 1200);
     };
 
     return (
-        <div className="fixed bottom-8 right-8 z-[9999]">
+        <div style={{ position: "fixed", bottom: 32, right: 32, zIndex: 9999 }}>
+            {/* ── Chat window ── */}
             <AnimatePresence>
                 {isOpen && (
                     <motion.div
-                        initial={{ opacity: 0, y: 20, scale: 0.95 }}
+                        initial={{ opacity: 0, y: 16, scale: 0.95 }}
                         animate={{ opacity: 1, y: 0, scale: 1 }}
-                        exit={{ opacity: 0, y: 20, scale: 0.95 }}
-                        transition={{ type: "spring", stiffness: 300, damping: 25 }}
-                        className="absolute bottom-20 right-0 w-[350px] max-w-[calc(100vw-40px)] bg-cream border border-cream-border rounded-2xl shadow-2xl overflow-hidden flex flex-col"
-                        style={{ height: "500px" }}
+                        exit={{ opacity: 0, y: 16, scale: 0.95 }}
+                        transition={{ type: "spring", stiffness: 280, damping: 24 }}
+                        style={{
+                            position: "absolute",
+                            bottom: 72,
+                            right: 0,
+                            width: 350,
+                            maxWidth: "calc(100vw - 40px)",
+                            height: 500,
+                            backgroundColor: "var(--color-cream)",
+                            border: "1px solid var(--color-cream-border)",
+                            borderRadius: 20,
+                            boxShadow: "0 24px 64px rgba(13,27,62,0.18)",
+                            overflow: "hidden",
+                            display: "flex",
+                            flexDirection: "column",
+                        }}
                     >
                         {/* Header */}
-                        <div className="bg-navy p-4 flex items-center justify-between">
-                            <div className="flex items-center gap-3">
-                                <div className="w-8 h-8 rounded-full bg-gold/20 flex items-center justify-center border border-gold/30">
-                                    <Sparkles size={16} className="text-gold" />
+                        <div style={{
+                            backgroundColor: "var(--color-navy)",
+                            padding: "16px 18px",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "space-between",
+                            flexShrink: 0,
+                        }}>
+                            <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                                <div style={{
+                                    width: 34, height: 34, borderRadius: "50%",
+                                    backgroundColor: "rgba(201,168,76,0.15)",
+                                    border: "1px solid rgba(201,168,76,0.3)",
+                                    display: "flex", alignItems: "center", justifyContent: "center",
+                                }}>
+                                    <Sparkles size={15} style={{ color: "var(--color-gold)" }} />
                                 </div>
                                 <div>
-                                    <h3 className="text-cream font-cormorant font-500 text-lg leading-none">Mree - Ai</h3>
-                                    <span className="text-gold/60 text-[10px] uppercase font-dm tracking-widest">Powered by MentorLeap</span>
+                                    <h3 style={{
+                                        fontFamily: "var(--font-cormorant)", fontWeight: 500,
+                                        fontSize: "1.1rem", lineHeight: 1,
+                                        color: "var(--color-cream)", margin: 0,
+                                    }}>
+                                        Mree · AI
+                                    </h3>
+                                    <span style={{
+                                        fontFamily: "var(--font-dm)", fontSize: "0.58rem",
+                                        letterSpacing: "0.12em", textTransform: "uppercase",
+                                        color: "rgba(201,168,76,0.55)",
+                                    }}>
+                                        Powered by MentorLeap
+                                    </span>
                                 </div>
                             </div>
                             <button
                                 onClick={() => setIsOpen(false)}
-                                className="text-cream/50 hover:text-cream transition-colors cursor-pointer"
+                                style={{
+                                    background: "none", border: "none", cursor: "pointer",
+                                    color: "rgba(250,250,247,0.45)", padding: 4,
+                                    transition: "color 0.2s",
+                                }}
+                                onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.color = "var(--color-cream)"; }}
+                                onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.color = "rgba(250,250,247,0.45)"; }}
                             >
-                                <X size={20} />
+                                <X size={18} />
                             </button>
                         </div>
 
-                        {/* Messages Area */}
+                        {/* Messages */}
                         <div
                             ref={scrollRef}
-                            className="flex-1 overflow-y-auto p-4 space-y-4 scrollbar-thin scrollbar-thumb-gold scrollbar-track-cream"
+                            style={{
+                                flex: 1,
+                                overflowY: "auto",
+                                padding: "16px",
+                                display: "flex",
+                                flexDirection: "column",
+                                gap: 12,
+                            }}
                         >
                             {messages.map((msg, i) => (
                                 <motion.div
-                                    initial={{ opacity: 0, x: msg.role === "user" ? 10 : -10 }}
-                                    animate={{ opacity: 1, x: 0 }}
                                     key={i}
-                                    className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}
+                                    initial={{ opacity: 0, x: msg.role === "user" ? 8 : -8 }}
+                                    animate={{ opacity: 1, x: 0 }}
+                                    transition={{ duration: 0.25 }}
+                                    style={{
+                                        display: "flex",
+                                        justifyContent: msg.role === "user" ? "flex-end" : "flex-start",
+                                    }}
                                 >
-                                    <div
-                                        className={`max-w-[85%] p-3 rounded-2xl font-dm text-sm leading-relaxed ${msg.role === "user"
-                                                ? "bg-navy text-cream rounded-tr-none"
-                                                : "bg-white text-text-primary border border-cream-border rounded-tl-none"
-                                            }`}
-                                    >
+                                    <div style={{
+                                        maxWidth: "85%",
+                                        padding: "10px 14px",
+                                        borderRadius: msg.role === "user" ? "16px 4px 16px 16px" : "4px 16px 16px 16px",
+                                        backgroundColor: msg.role === "user" ? "var(--color-navy)" : "#fff",
+                                        color: msg.role === "user" ? "var(--color-cream)" : "var(--color-navy)",
+                                        fontFamily: "var(--font-dm)",
+                                        fontSize: "0.82rem",
+                                        lineHeight: 1.6,
+                                        border: msg.role === "assistant" ? "1px solid var(--color-cream-border)" : "none",
+                                    }}>
                                         {msg.content}
                                     </div>
                                 </motion.div>
                             ))}
+
+                            {/* Typing indicator */}
+                            {typing && (
+                                <div style={{ display: "flex", justifyContent: "flex-start" }}>
+                                    <div style={{
+                                        padding: "10px 16px",
+                                        borderRadius: "4px 16px 16px 16px",
+                                        backgroundColor: "#fff",
+                                        border: "1px solid var(--color-cream-border)",
+                                        display: "flex", gap: 4, alignItems: "center",
+                                    }}>
+                                        {[0, 1, 2].map((d) => (
+                                            <motion.span
+                                                key={d}
+                                                animate={{ y: [0, -4, 0] }}
+                                                transition={{ duration: 0.7, repeat: Infinity, delay: d * 0.15 }}
+                                                style={{
+                                                    width: 5, height: 5, borderRadius: "50%",
+                                                    backgroundColor: "rgba(13,27,62,0.25)",
+                                                    display: "block",
+                                                }}
+                                            />
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
                         </div>
 
-                        {/* Input Area */}
-                        <div className="p-4 border-t border-cream-border bg-white">
-                            <div className="flex items-center gap-2 bg-cream rounded-full px-4 py-2 border border-cream-border transition-focus-within focus-within:border-gold/50">
+                        {/* Input */}
+                        <div style={{
+                            padding: "12px 14px",
+                            borderTop: "1px solid var(--color-cream-border)",
+                            backgroundColor: "#fff",
+                            flexShrink: 0,
+                        }}>
+                            <div style={{
+                                display: "flex", alignItems: "center", gap: 8,
+                                backgroundColor: "var(--color-cream)",
+                                borderRadius: 999,
+                                padding: "8px 8px 8px 16px",
+                                border: "1px solid var(--color-cream-border)",
+                            }}>
                                 <input
                                     type="text"
                                     placeholder="Ask Mree anything..."
-                                    className="flex-1 bg-transparent border-none outline-none text-sm font-dm py-1 placeholder:text-text-muted/50"
                                     value={input}
                                     onChange={(e) => setInput(e.target.value)}
                                     onKeyDown={(e) => e.key === "Enter" && handleSend()}
+                                    style={{
+                                        flex: 1, background: "none", border: "none", outline: "none",
+                                        fontFamily: "var(--font-dm)", fontSize: "0.82rem",
+                                        color: "var(--color-navy)",
+                                    }}
                                 />
                                 <button
                                     onClick={handleSend}
-                                    className="text-gold hover:text-gold-light transition-colors cursor-pointer"
+                                    style={{
+                                        width: 32, height: 32, borderRadius: "50%",
+                                        backgroundColor: input.trim() ? "var(--color-navy)" : "rgba(13,27,62,0.08)",
+                                        border: "none", cursor: input.trim() ? "pointer" : "default",
+                                        display: "flex", alignItems: "center", justifyContent: "center",
+                                        transition: "background-color 0.2s",
+                                        flexShrink: 0,
+                                    }}
                                 >
-                                    <Send size={18} />
+                                    <Send size={14} style={{ color: input.trim() ? "var(--color-gold)" : "rgba(13,27,62,0.3)" }} />
                                 </button>
                             </div>
                         </div>
@@ -115,13 +225,35 @@ export function ChatBot() {
                 )}
             </AnimatePresence>
 
-            {/* Floating Toggle Button */}
+            {/* ── Floating button ── */}
             <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
+                whileHover={{ scale: 1.06 }}
+                whileTap={{ scale: 0.94 }}
                 onClick={() => setIsOpen(!isOpen)}
-                className="w-14 h-14 rounded-full bg-navy text-gold shadow-xl flex items-center justify-center border border-gold/30 cursor-pointer relative group"
+                style={{
+                    position: "relative",
+                    width: 52, height: 52,
+                    borderRadius: "50%",
+                    backgroundColor: "var(--color-navy)",
+                    border: "1px solid rgba(201,168,76,0.35)",
+                    cursor: "pointer",
+                    display: "flex", alignItems: "center", justifyContent: "center",
+                    boxShadow: "0 8px 32px rgba(13,27,62,0.25)",
+                }}
             >
+                {/* Pulse ring */}
+                {!isOpen && (
+                    <motion.span
+                        animate={{ scale: [1, 1.5], opacity: [0.3, 0] }}
+                        transition={{ duration: 1.8, repeat: Infinity, ease: "easeOut" }}
+                        style={{
+                            position: "absolute", inset: 0, borderRadius: "50%",
+                            backgroundColor: "var(--color-gold)",
+                            pointerEvents: "none",
+                        }}
+                    />
+                )}
+
                 <AnimatePresence mode="wait">
                     {isOpen ? (
                         <motion.div
@@ -129,8 +261,9 @@ export function ChatBot() {
                             initial={{ rotate: -90, opacity: 0 }}
                             animate={{ rotate: 0, opacity: 1 }}
                             exit={{ rotate: 90, opacity: 0 }}
+                            transition={{ duration: 0.2 }}
                         >
-                            <X size={24} />
+                            <X size={20} style={{ color: "var(--color-gold)" }} />
                         </motion.div>
                     ) : (
                         <motion.div
@@ -138,16 +271,12 @@ export function ChatBot() {
                             initial={{ rotate: 90, opacity: 0 }}
                             animate={{ rotate: 0, opacity: 1 }}
                             exit={{ rotate: -90, opacity: 0 }}
+                            transition={{ duration: 0.2 }}
                         >
-                            <MessageSquare size={24} />
+                            <MessageSquare size={20} style={{ color: "var(--color-gold)" }} />
                         </motion.div>
                     )}
                 </AnimatePresence>
-
-                {/* Glow effect */}
-                {!isOpen && (
-                    <span className="absolute inset-0 rounded-full bg-gold/20 blur-md group-hover:bg-gold/30 transition-colors animate-pulse" />
-                )}
             </motion.button>
         </div>
     );
