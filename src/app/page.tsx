@@ -7,6 +7,7 @@ import MentorAIFeature from "@/components/home/MentorAIFeature";
 import LiveEventsPreview from "@/components/home/LiveEventsPreview";
 import ResourceLibraryPreview from "@/components/home/ResourceLibraryPreview";
 import Testimonials from "@/components/home/Testimonials";
+import StudioReel from "@/components/home/StudioReel";
 
 export default function HomePage() {
   return (
@@ -18,6 +19,7 @@ export default function HomePage() {
       <AboutMridu />
       <MentorAIFeature />
       <LiveEventsPreview />
+      <StudioReel />
       <ResourceLibraryPreview />
       <Testimonials />
     </>
