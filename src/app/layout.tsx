@@ -5,6 +5,7 @@ import { LenisProvider } from "@/components/animations/LenisProvider";
 import { CustomCursor } from "@/components/ui/CustomCursor";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
+import { ChatBot } from "@/components/ui/ChatBot";
 
 const cormorant = Cormorant_Garamond({
   subsets: ["latin"],
@@ -37,6 +38,7 @@ export default function RootLayout({
           <Navbar />
           <main>{children}</main>
           <Footer />
+          <ChatBot />
         </LenisProvider>
       </body>
     </html>
